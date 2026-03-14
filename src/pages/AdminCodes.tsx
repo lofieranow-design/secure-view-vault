@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { KeyRound, Plus, Ban, Copy, Link, Skull } from "lucide-react";
+import { KeyRound, Plus, Ban, Copy, Link, Skull, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface AccessCode {
@@ -92,6 +92,16 @@ export default function AdminCodes() {
   const handleRevoke = async (id: string) => {
     await supabase.from("access_codes").update({ status: "revoked" }).eq("id", id);
     toast.success("Code revoked");
+    fetchData();
+  };
+
+  const handleDeleteCode = async (id: string) => {
+    // Delete mappings first, then sessions, activity logs, then the code
+    await supabase.from("code_file_mappings").delete().eq("code_id", id);
+    await supabase.from("viewer_sessions").delete().eq("code_id", id);
+    await supabase.from("activity_log").delete().eq("code_id", id);
+    await supabase.from("access_codes").delete().eq("id", id);
+    toast.success("Code deleted");
     fetchData();
   };
 
@@ -291,6 +301,15 @@ export default function AdminCodes() {
                             </Button>
                           </>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteCode(code.id)}
+                          title="Delete code"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
