@@ -204,23 +204,6 @@ export default function ViewerPage() {
     return <FileSpreadsheet className="h-8 w-8" />;
   };
 
-  const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const loadThumbnails = async () => {
-      const urls: Record<string, string> = {};
-      for (const file of files) {
-        if (file.thumbnail_path) {
-          const { data } = await supabase.storage
-            .from("digital-products")
-            .createSignedUrl(file.thumbnail_path, 3600);
-          if (data?.signedUrl) urls[file.id] = data.signedUrl;
-        }
-      }
-      setThumbnailUrls(urls);
-    };
-    if (files.length > 0) loadThumbnails();
-  }, [files]);
 
   // Entry / Verified / Error states
   if (state === "entry" || state === "error" || state === "verified" || state === "expired") {
