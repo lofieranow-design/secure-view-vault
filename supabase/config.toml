@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.serve-file]
 verify_jwt = false
+
+[functions.kill-session]
+verify_jwt = false

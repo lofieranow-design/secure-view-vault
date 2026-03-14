@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, KeyRound, Eye, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { Shield, KeyRound, Eye, Clock, AlertCircle, Loader2, LogOut } from "lucide-react";
 import { SectionNav } from "@/components/SectionNav";
 import { SecureViewer } from "@/components/SecureViewer";
 
@@ -115,6 +115,18 @@ export default function ViewerPage() {
     }, 1000);
     return () => clearInterval(timerRef.current);
   }, [state]);
+
+  const killSession = async () => {
+    setLoading(true);
+    try {
+      await supabase.functions.invoke("kill-session", {
+        body: { sessionToken },
+      });
+    } catch {}
+    clearInterval(timerRef.current);
+    setState("expired");
+    setLoading(false);
+  };
 
   // Content protection
   useEffect(() => {
@@ -243,7 +255,7 @@ export default function ViewerPage() {
           <Shield className="h-4 w-4 text-primary" />
           <span className="font-display text-sm font-semibold text-foreground">Digital Vault</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Badge
             variant="outline"
             className={`font-mono text-sm ${timeLeft <= 60 ? "animate-pulse-slow border-destructive text-destructive" : ""}`}
@@ -251,6 +263,16 @@ export default function ViewerPage() {
             <Clock className="mr-1 h-3 w-3" />
             {formatTime(timeLeft)}
           </Badge>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={killSession}
+            disabled={loading}
+          >
+            <LogOut className="mr-1 h-3.5 w-3.5" />
+            End Session
+          </Button>
         </div>
       </header>
 
