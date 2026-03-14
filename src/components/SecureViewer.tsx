@@ -36,7 +36,16 @@ export function SecureViewer({ file, sessionToken, accessCode }: SecureViewerPro
           return;
         }
 
-        setUrl(data.signedUrl);
+        // Fetch the file as blob to avoid cross-origin iframe blocking
+        const response = await fetch(data.signedUrl);
+        if (!response.ok) {
+          setError("Failed to download file");
+          setLoading(false);
+          return;
+        }
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        setUrl(blobUrl);
       } catch {
         setError("Failed to load file");
       }
@@ -44,6 +53,9 @@ export function SecureViewer({ file, sessionToken, accessCode }: SecureViewerPro
     };
 
     fetchFile();
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
   }, [file.id, sessionToken]);
 
   // Watermark overlay for images rendered on canvas
