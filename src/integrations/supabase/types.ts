@@ -14,16 +14,227 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      access_codes: {
+        Row: {
+          activated_at: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          status: string
+          timer_duration: number
+        }
+        Insert: {
+          activated_at?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          status?: string
+          timer_duration?: number
+        }
+        Update: {
+          activated_at?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          status?: string
+          timer_duration?: number
+        }
+        Relationships: []
+      }
+      activity_log: {
+        Row: {
+          code_id: string | null
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          session_id: string | null
+        }
+        Insert: {
+          code_id?: string | null
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          code_id?: string | null
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "access_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "viewer_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      code_file_mappings: {
+        Row: {
+          code_id: string
+          file_id: string
+          id: string
+        }
+        Insert: {
+          code_id: string
+          file_id: string
+          id?: string
+        }
+        Update: {
+          code_id?: string
+          file_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_file_mappings_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "access_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "code_file_mappings_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      files: {
+        Row: {
+          created_at: string
+          filename: string
+          filesize: number | null
+          filetype: string
+          id: string
+          metadata: Json | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          filesize?: number | null
+          filetype: string
+          id?: string
+          metadata?: Json | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          filesize?: number | null
+          filetype?: string
+          id?: string
+          metadata?: Json | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      viewer_sessions: {
+        Row: {
+          code_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          is_active: boolean
+          session_expiry: string
+          session_start: string
+          session_token: string
+          user_agent: string | null
+        }
+        Insert: {
+          code_id: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean
+          session_expiry: string
+          session_start?: string
+          session_token: string
+          user_agent?: string | null
+        }
+        Update: {
+          code_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean
+          session_expiry?: string
+          session_start?: string
+          session_token?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viewer_sessions_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "access_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +361,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+    },
   },
 } as const
