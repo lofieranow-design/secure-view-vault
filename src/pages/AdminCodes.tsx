@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { KeyRound, Plus, Ban, Copy, Link } from "lucide-react";
+import { KeyRound, Plus, Ban, Copy, Link, Skull } from "lucide-react";
 import { toast } from "sonner";
 
 interface AccessCode {
@@ -92,6 +92,15 @@ export default function AdminCodes() {
   const handleRevoke = async (id: string) => {
     await supabase.from("access_codes").update({ status: "revoked" }).eq("id", id);
     toast.success("Code revoked");
+    fetchData();
+  };
+
+  const handleKillSessions = async (codeId: string) => {
+    // Deactivate all sessions for this code
+    await supabase.from("viewer_sessions").update({ is_active: false }).eq("code_id", codeId);
+    // Expire the code
+    await supabase.from("access_codes").update({ status: "expired" }).eq("id", codeId);
+    toast.success("All sessions killed and code expired");
     fetchData();
   };
 
@@ -261,15 +270,26 @@ export default function AdminCodes() {
                           </DialogContent>
                         </Dialog>
                         {code.status === "active" && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:bg-destructive/10"
-                            onClick={() => handleRevoke(code.id)}
-                            title="Revoke"
-                          >
-                            <Ban className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => handleKillSessions(code.id)}
+                              title="Kill active sessions"
+                            >
+                              <Skull className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => handleRevoke(code.id)}
+                              title="Revoke"
+                            >
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </TableCell>

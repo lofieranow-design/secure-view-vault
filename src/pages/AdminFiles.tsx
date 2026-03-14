@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Trash2, FileText, Image, Video, FileSpreadsheet } from "lucide-react";
+import { Upload, Trash2, FileText, Image, Video, FileSpreadsheet, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 
 interface FileRecord {
@@ -15,6 +15,7 @@ interface FileRecord {
   filetype: string;
   filesize: number | null;
   storage_path: string;
+  thumbnail_path: string | null;
   created_at: string;
 }
 
@@ -80,17 +81,48 @@ export default function AdminFiles() {
     e.target.value = "";
   };
 
-  const handleDelete = async (file: FileRecord) => {
-    const { error: storageError } = await supabase.storage
+  const handleThumbnailUpload = async (fileId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const thumbFile = e.target.files?.[0];
+    if (!thumbFile) return;
+
+    const path = `thumbnails/${fileId}/${thumbFile.name}`;
+    const { error: uploadError } = await supabase.storage
       .from("digital-products")
-      .remove([file.storage_path]);
-    if (storageError) {
-      toast.error("Failed to delete file from storage");
+      .upload(path, thumbFile, { upsert: true });
+
+    if (uploadError) {
+      toast.error("Failed to upload thumbnail");
       return;
     }
+
+    const { error: dbError } = await supabase
+      .from("files")
+      .update({ thumbnail_path: path } as any)
+      .eq("id", fileId);
+
+    if (dbError) {
+      toast.error("Failed to save thumbnail");
+    } else {
+      toast.success("Thumbnail uploaded");
+    }
+    fetchFiles();
+    e.target.value = "";
+  };
+
+  const handleDelete = async (file: FileRecord) => {
+    const pathsToRemove = [file.storage_path];
+    if (file.thumbnail_path) pathsToRemove.push(file.thumbnail_path);
+
+    await supabase.storage.from("digital-products").remove(pathsToRemove);
     await supabase.from("files").delete().eq("id", file.id);
     toast.success(`Deleted ${file.filename}`);
     fetchFiles();
+  };
+
+  const getThumbnailUrl = (thumbPath: string | null) => {
+    if (!thumbPath) return null;
+    const { data } = supabase.storage.from("digital-products").getPublicUrl(thumbPath);
+    return data?.publicUrl || null;
   };
 
   return (
@@ -126,6 +158,7 @@ export default function AdminFiles() {
               <TableHeader>
                 <TableRow>
                   <TableHead>File</TableHead>
+                  <TableHead>Thumbnail</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Size</TableHead>
                   <TableHead>Uploaded</TableHead>
@@ -138,6 +171,41 @@ export default function AdminFiles() {
                     <TableCell className="flex items-center gap-2 font-medium">
                       {fileIcon(file.filetype)}
                       <span className="truncate max-w-[200px]">{file.filename}</span>
+                    </TableCell>
+                    <TableCell>
+                      {file.thumbnail_path ? (
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={getThumbnailUrl(file.thumbnail_path) || ""}
+                            alt="thumb"
+                            className="h-10 w-10 rounded object-cover border border-border"
+                          />
+                          <label className="cursor-pointer">
+                            <Input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => handleThumbnailUpload(file.id, e)}
+                            />
+                            <span className="text-xs text-primary hover:underline">Replace</span>
+                          </label>
+                        </div>
+                      ) : (
+                        <label className="cursor-pointer">
+                          <Input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => handleThumbnailUpload(file.id, e)}
+                          />
+                          <Button variant="ghost" size="sm" asChild>
+                            <span>
+                              <ImagePlus className="mr-1 h-3.5 w-3.5" />
+                              Add
+                            </span>
+                          </Button>
+                        </label>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="font-mono text-xs">
