@@ -165,14 +165,13 @@ export default function AdminCodes() {
             </div>
             <div className="space-y-2">
               <Label>Unit</Label>
-              <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "minutes" | "hours" | "days")}>
+              <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "seconds" | "minutes")}>
                 <SelectTrigger className="w-28">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="seconds">Seconds</SelectItem>
                   <SelectItem value="minutes">Minutes</SelectItem>
-                  <SelectItem value="hours">Hours</SelectItem>
-                  <SelectItem value="days">Days</SelectItem>
                 </SelectContent>
               </Select>
             </div>
