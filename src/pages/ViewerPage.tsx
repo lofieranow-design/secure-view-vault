@@ -25,6 +25,7 @@ interface LinkedFile {
   filetype: string;
   storage_path: string;
   thumbnail_path: string | null;
+  thumbnail_url: string | null;
 }
 
 export default function ViewerPage() {
