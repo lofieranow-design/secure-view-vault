@@ -95,6 +95,16 @@ export default function AdminCodes() {
     fetchData();
   };
 
+  const handleDeleteCode = async (id: string) => {
+    // Delete mappings first, then sessions, activity logs, then the code
+    await supabase.from("code_file_mappings").delete().eq("code_id", id);
+    await supabase.from("viewer_sessions").delete().eq("code_id", id);
+    await supabase.from("activity_log").delete().eq("code_id", id);
+    await supabase.from("access_codes").delete().eq("id", id);
+    toast.success("Code deleted");
+    fetchData();
+  };
+
   const handleKillSessions = async (codeId: string) => {
     // Deactivate all sessions for this code
     await supabase.from("viewer_sessions").update({ is_active: false }).eq("code_id", codeId);
