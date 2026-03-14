@@ -188,7 +188,7 @@ export default function AdminFiles() {
                       {file.thumbnail_path ? (
                         <div className="flex items-center gap-2">
                           <img
-                            src={getThumbnailUrl(file.thumbnail_path) || ""}
+                            src={thumbnailUrls[file.id] || ""}
                             alt="thumb"
                             className="h-10 w-10 rounded object-cover border border-border"
                           />

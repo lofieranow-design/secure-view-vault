@@ -301,6 +301,15 @@ export default function AdminCodes() {
                             </Button>
                           </>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteCode(code.id)}
+                          title="Delete code"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
