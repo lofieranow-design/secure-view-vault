@@ -1,1 +1,10 @@
 project_id = "icjlpvxsircqmbjcjiwj"
+
+[functions.validate-code]
+verify_jwt = false
+
+[functions.activate-session]
+verify_jwt = false
+
+[functions.serve-file]
+verify_jwt = false
