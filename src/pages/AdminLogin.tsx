@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, AlertCircle } from "lucide-react";
+import { SectionNav } from "@/components/SectionNav";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");

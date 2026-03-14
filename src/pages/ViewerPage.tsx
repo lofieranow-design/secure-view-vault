@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, KeyRound, Eye, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { SectionNav } from "@/components/SectionNav";
 import { SecureViewer } from "@/components/SecureViewer";
 
 type ViewerState = "entry" | "verified" | "viewing" | "expired" | "error";
