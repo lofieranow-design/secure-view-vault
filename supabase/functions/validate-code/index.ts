@@ -88,11 +88,11 @@ Deno.serve(async (req) => {
       .eq("code_id", codeData.id);
 
     const fileIds = (mappings || []).map((m: { file_id: string }) => m.file_id);
-    let files: { id: string; filename: string; filetype: string; storage_path: string }[] = [];
+    let files: { id: string; filename: string; filetype: string; storage_path: string; thumbnail_path: string | null }[] = [];
     if (fileIds.length > 0) {
       const { data: filesData } = await supabase
         .from("files")
-        .select("id, filename, filetype, storage_path")
+        .select("id, filename, filetype, storage_path, thumbnail_path")
         .in("id", fileIds);
       files = filesData || [];
     }
