@@ -134,6 +134,7 @@ export type Database = {
           id: string
           metadata: Json | null
           storage_path: string
+          thumbnail_path: string | null
           uploaded_by: string | null
         }
         Insert: {
@@ -144,6 +145,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           storage_path: string
+          thumbnail_path?: string | null
           uploaded_by?: string | null
         }
         Update: {
@@ -154,6 +156,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           storage_path?: string
+          thumbnail_path?: string | null
           uploaded_by?: string | null
         }
         Relationships: []
