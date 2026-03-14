@@ -69,8 +69,8 @@ export default function AdminCodes() {
     setGenerating(true);
     const code = generateSecureCode();
     let mins = parseInt(duration);
-    if (durationUnit === "hours") mins *= 60;
-    if (durationUnit === "days") mins *= 1440;
+    if (durationUnit === "seconds") mins = Math.max(1, Math.round(mins / 60));
+    // minutes stays as-is
 
     const { error } = await supabase.from("access_codes").insert({
       code,
