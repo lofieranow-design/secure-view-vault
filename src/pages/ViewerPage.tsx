@@ -255,7 +255,7 @@ export default function ViewerPage() {
           <Shield className="h-4 w-4 text-primary" />
           <span className="font-display text-sm font-semibold text-foreground">Digital Vault</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Badge
             variant="outline"
             className={`font-mono text-sm ${timeLeft <= 60 ? "animate-pulse-slow border-destructive text-destructive" : ""}`}
@@ -263,6 +263,16 @@ export default function ViewerPage() {
             <Clock className="mr-1 h-3 w-3" />
             {formatTime(timeLeft)}
           </Badge>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={killSession}
+            disabled={loading}
+          >
+            <LogOut className="mr-1 h-3.5 w-3.5" />
+            End Session
+          </Button>
         </div>
       </header>
 
