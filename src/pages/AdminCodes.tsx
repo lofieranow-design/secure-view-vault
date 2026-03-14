@@ -261,15 +261,26 @@ export default function AdminCodes() {
                           </DialogContent>
                         </Dialog>
                         {code.status === "active" && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:bg-destructive/10"
-                            onClick={() => handleRevoke(code.id)}
-                            title="Revoke"
-                          >
-                            <Ban className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => handleKillSessions(code.id)}
+                              title="Kill active sessions"
+                            >
+                              <Skull className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => handleRevoke(code.id)}
+                              title="Revoke"
+                            >
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </TableCell>
