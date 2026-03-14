@@ -335,7 +335,7 @@ export default function ViewerPage() {
                 const isOpened = openedFiles.has(file.id);
                 const timerVal = fileTimers[file.id];
                 const isTimerExpired = timerVal !== undefined && timerVal <= 0;
-                const thumbUrl = getThumbnailUrl(file.thumbnail_path);
+                const thumbUrl = thumbnailUrls[file.id] || null;
 
                 return (
                   <button
