@@ -116,6 +116,18 @@ export default function ViewerPage() {
     return () => clearInterval(timerRef.current);
   }, [state]);
 
+  const killSession = async () => {
+    setLoading(true);
+    try {
+      await supabase.functions.invoke("kill-session", {
+        body: { sessionToken },
+      });
+    } catch {}
+    clearInterval(timerRef.current);
+    setState("expired");
+    setLoading(false);
+  };
+
   // Content protection
   useEffect(() => {
     if (state !== "viewing") return;
