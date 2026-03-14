@@ -46,7 +46,7 @@ export default function AdminCodes() {
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [mappings, setMappings] = useState<CodeFileMapping[]>([]);
   const [duration, setDuration] = useState("60");
-  const [durationUnit, setDurationUnit] = useState<"minutes" | "hours" | "days">("minutes");
+  const [durationUnit, setDurationUnit] = useState<"seconds" | "minutes">("minutes");
   const [generating, setGenerating] = useState(false);
   const [linkDialogCode, setLinkDialogCode] = useState<AccessCode | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
