@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { KeyRound, Plus, Ban, Copy, Link, Skull } from "lucide-react";
+import { KeyRound, Plus, Ban, Copy, Link, Skull, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface AccessCode {
