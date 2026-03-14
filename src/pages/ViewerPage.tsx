@@ -25,6 +25,7 @@ interface LinkedFile {
   filetype: string;
   storage_path: string;
   thumbnail_path: string | null;
+  thumbnail_url: string | null;
 }
 
 export default function ViewerPage() {
@@ -203,23 +204,6 @@ export default function ViewerPage() {
     return <FileSpreadsheet className="h-8 w-8" />;
   };
 
-  const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const loadThumbnails = async () => {
-      const urls: Record<string, string> = {};
-      for (const file of files) {
-        if (file.thumbnail_path) {
-          const { data } = await supabase.storage
-            .from("digital-products")
-            .createSignedUrl(file.thumbnail_path, 3600);
-          if (data?.signedUrl) urls[file.id] = data.signedUrl;
-        }
-      }
-      setThumbnailUrls(urls);
-    };
-    if (files.length > 0) loadThumbnails();
-  }, [files]);
 
   // Entry / Verified / Error states
   if (state === "entry" || state === "error" || state === "verified" || state === "expired") {
@@ -335,7 +319,7 @@ export default function ViewerPage() {
                 const isOpened = openedFiles.has(file.id);
                 const timerVal = fileTimers[file.id];
                 const isTimerExpired = timerVal !== undefined && timerVal <= 0;
-                const thumbUrl = thumbnailUrls[file.id] || null;
+                const thumbUrl = file.thumbnail_url || null;
 
                 return (
                   <button

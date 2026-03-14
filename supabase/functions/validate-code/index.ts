@@ -88,13 +88,27 @@ Deno.serve(async (req) => {
       .eq("code_id", codeData.id);
 
     const fileIds = (mappings || []).map((m: { file_id: string }) => m.file_id);
-    let files: { id: string; filename: string; filetype: string; storage_path: string; thumbnail_path: string | null }[] = [];
+    let files: { id: string; filename: string; filetype: string; storage_path: string; thumbnail_path: string | null; thumbnail_url: string | null }[] = [];
     if (fileIds.length > 0) {
       const { data: filesData } = await supabase
         .from("files")
         .select("id, filename, filetype, storage_path, thumbnail_path")
         .in("id", fileIds);
-      files = filesData || [];
+      
+      // Generate signed URLs for thumbnails
+      const filesWithThumbs = await Promise.all(
+        (filesData || []).map(async (f: any) => {
+          let thumbnail_url: string | null = null;
+          if (f.thumbnail_path) {
+            const { data: signedData } = await supabase.storage
+              .from("digital-products")
+              .createSignedUrl(f.thumbnail_path, 3600);
+            thumbnail_url = signedData?.signedUrl || null;
+          }
+          return { ...f, thumbnail_url };
+        })
+      );
+      files = filesWithThumbs;
     }
 
     // If already activated, find session token
