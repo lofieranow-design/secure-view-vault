@@ -9,3 +9,5 @@ verify_jwt = false
 [functions.serve-file]
 verify_jwt = false
 
+[functions.update-admin]
+verify_jwt = false
