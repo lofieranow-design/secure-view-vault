@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     // Validate session
     const { data: session } = await supabase
       .from("viewer_sessions")
-      .select("*, access_codes!inner(id, status)")
+      .select("id, code_id, session_expiry, is_active")
       .eq("session_token", sessionToken)
       .eq("is_active", true)
       .maybeSingle();
@@ -39,7 +39,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check session expiry
     if (new Date(session.session_expiry) < new Date()) {
       await supabase.from("viewer_sessions").update({ is_active: false }).eq("id", session.id);
       await supabase.from("access_codes").update({ status: "expired" }).eq("id", session.code_id);
@@ -78,26 +77,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Download from storage
-    const { data: fileBlob, error: dlError } = await supabase.storage
+    // Create a short-lived signed URL (60 seconds)
+    const { data: signedData, error: signError } = await supabase.storage
       .from("digital-products")
-      .download(fileData.storage_path);
+      .createSignedUrl(fileData.storage_path, 60);
 
-    if (dlError || !fileBlob) {
+    if (signError || !signedData?.signedUrl) {
       return new Response(
-        JSON.stringify({ error: "Failed to retrieve file" }),
+        JSON.stringify({ error: "Failed to generate file access" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
-
-    // Convert to base64
-    const arrayBuffer = await fileBlob.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    let binary = "";
-    for (let i = 0; i < uint8Array.length; i++) {
-      binary += String.fromCharCode(uint8Array[i]);
-    }
-    const base64 = btoa(binary);
 
     // Log file access
     await supabase.from("activity_log").insert({
@@ -109,7 +99,11 @@ Deno.serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ content: base64, contentType: fileData.filetype, filename: fileData.filename }),
+      JSON.stringify({
+        signedUrl: signedData.signedUrl,
+        contentType: fileData.filetype,
+        filename: fileData.filename,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch {
