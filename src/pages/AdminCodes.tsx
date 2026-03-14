@@ -46,7 +46,7 @@ export default function AdminCodes() {
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [mappings, setMappings] = useState<CodeFileMapping[]>([]);
   const [duration, setDuration] = useState("60");
-  const [durationUnit, setDurationUnit] = useState<"minutes" | "hours" | "days">("minutes");
+  const [durationUnit, setDurationUnit] = useState<"seconds" | "minutes">("minutes");
   const [generating, setGenerating] = useState(false);
   const [linkDialogCode, setLinkDialogCode] = useState<AccessCode | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -69,8 +69,8 @@ export default function AdminCodes() {
     setGenerating(true);
     const code = generateSecureCode();
     let mins = parseInt(duration);
-    if (durationUnit === "hours") mins *= 60;
-    if (durationUnit === "days") mins *= 1440;
+    if (durationUnit === "seconds") mins = Math.max(1, Math.round(mins / 60));
+    // minutes stays as-is
 
     const { error } = await supabase.from("access_codes").insert({
       code,
@@ -165,14 +165,13 @@ export default function AdminCodes() {
             </div>
             <div className="space-y-2">
               <Label>Unit</Label>
-              <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "minutes" | "hours" | "days")}>
+              <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "seconds" | "minutes")}>
                 <SelectTrigger className="w-28">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="seconds">Seconds</SelectItem>
                   <SelectItem value="minutes">Minutes</SelectItem>
-                  <SelectItem value="hours">Hours</SelectItem>
-                  <SelectItem value="days">Days</SelectItem>
                 </SelectContent>
               </Select>
             </div>
