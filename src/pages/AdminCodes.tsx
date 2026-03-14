@@ -95,6 +95,15 @@ export default function AdminCodes() {
     fetchData();
   };
 
+  const handleKillSessions = async (codeId: string) => {
+    // Deactivate all sessions for this code
+    await supabase.from("viewer_sessions").update({ is_active: false }).eq("code_id", codeId);
+    // Expire the code
+    await supabase.from("access_codes").update({ status: "expired" }).eq("id", codeId);
+    toast.success("All sessions killed and code expired");
+    fetchData();
+  };
+
   const handleCopy = async (code: string) => {
     await navigator.clipboard.writeText(code);
     toast.success("Code copied");
