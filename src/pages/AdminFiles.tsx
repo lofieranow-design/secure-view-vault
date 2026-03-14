@@ -119,11 +119,23 @@ export default function AdminFiles() {
     fetchFiles();
   };
 
-  const getThumbnailUrl = (thumbPath: string | null) => {
-    if (!thumbPath) return null;
-    const { data } = supabase.storage.from("digital-products").getPublicUrl(thumbPath);
-    return data?.publicUrl || null;
-  };
+  const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const loadThumbnails = async () => {
+      const urls: Record<string, string> = {};
+      for (const file of files) {
+        if (file.thumbnail_path) {
+          const { data } = await supabase.storage
+            .from("digital-products")
+            .createSignedUrl(file.thumbnail_path, 3600);
+          if (data?.signedUrl) urls[file.id] = data.signedUrl;
+        }
+      }
+      setThumbnailUrls(urls);
+    };
+    if (files.length > 0) loadThumbnails();
+  }, [files]);
 
   return (
     <div className="space-y-6">
