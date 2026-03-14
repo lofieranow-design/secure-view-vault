@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, AlertCircle } from "lucide-react";
+import { SectionNav } from "@/components/SectionNav";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -33,6 +34,7 @@ export default function AdminLogin() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border shadow-lg">
         <CardHeader className="text-center space-y-4 pb-2">
+          <SectionNav />
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
             <Shield className="h-7 w-7 text-primary-foreground" />
           </div>

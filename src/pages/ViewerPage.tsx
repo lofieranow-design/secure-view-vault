@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, KeyRound, Eye, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { SectionNav } from "@/components/SectionNav";
 import { SecureViewer } from "@/components/SecureViewer";
 
 type ViewerState = "entry" | "verified" | "viewing" | "expired" | "error";
@@ -161,6 +162,7 @@ export default function ViewerPage() {
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md border-border shadow-lg">
           <CardHeader className="text-center space-y-4 pb-2">
+            <SectionNav />
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
               <Shield className="h-7 w-7 text-primary-foreground" />
             </div>
