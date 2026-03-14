@@ -121,23 +121,41 @@ export function SecureViewer({ file, sessionToken, accessCode }: SecureViewerPro
           <div className="relative select-none" onContextMenu={(e) => e.preventDefault()}>
             {/* PDF Viewer */}
             {file.filetype.includes("pdf") && (
-              <div className="relative">
-                <iframe
-                  src={`${url}#toolbar=0&navpanes=0&scrollbar=1`}
-                  className="h-[600px] w-full border-0"
-                  title={file.filename}
-                />
-                {/* Watermark overlay for PDF */}
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-                  <div className="rotate-[-30deg] opacity-10">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <p key={i} className="whitespace-nowrap font-mono text-xl text-foreground my-12">
-                        {`Protected • ${accessCode.slice(0, 8)} • ${new Date().getFullYear()}`}
-                        {"    "}
-                        {`Protected • ${accessCode.slice(0, 8)} • ${new Date().getFullYear()}`}
-                      </p>
-                    ))}
+              <div className="space-y-2">
+                <div className="relative h-[600px]">
+                  <object
+                    data={url}
+                    type="application/pdf"
+                    className="h-full w-full"
+                    aria-label={file.filename}
+                  >
+                    <div className="flex h-full items-center justify-center p-6 text-center text-sm text-muted-foreground">
+                      PDF preview is unavailable in this browser.
+                    </div>
+                  </object>
+
+                  {/* Watermark overlay for PDF */}
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+                    <div className="rotate-[-30deg] opacity-10">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <p key={i} className="my-12 whitespace-nowrap font-mono text-xl text-foreground">
+                          {`Protected • ${accessCode.slice(0, 8)} • ${new Date().getFullYear()}`}
+                          {"    "}
+                          {`Protected • ${accessCode.slice(0, 8)} • ${new Date().getFullYear()}`}
+                        </p>
+                      ))}
+                    </div>
                   </div>
+                </div>
+                <div className="text-right">
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    Open PDF in a new tab
+                  </a>
                 </div>
               </div>
             )}
