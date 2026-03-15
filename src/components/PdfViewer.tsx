@@ -49,8 +49,10 @@ export default function PdfViewer({ url, watermarkText }: PdfViewerProps) {
               <p className="max-w-sm text-center text-sm text-muted-foreground">
                 You've reached the end of the free preview. Purchase the full version to access all {numPages} pages.
               </p>
-              <Button className="mt-2" size="lg">
-                Get Full Version
+              <Button className="mt-2" size="lg" asChild>
+                <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer">
+                  Get Full Version
+                </a>
               </Button>
             </div>
           ) : (
