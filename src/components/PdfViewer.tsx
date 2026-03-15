@@ -65,22 +65,36 @@ export default function PdfViewer({ url, watermarkText }: PdfViewerProps) {
       </div>
 
       {numPages > 1 && (
-        <div className="flex items-center justify-center gap-3 border-t border-border bg-card py-2">
-          <Button variant="ghost" size="sm" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => p - 1)}>
-            <ChevronLeft className="h-4 w-4" />
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={currentPage <= 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className="absolute left-1 top-1/2 z-10 -translate-y-1/2 rounded-full bg-card/80 shadow-md backdrop-blur-sm hover:bg-card"
+          >
+            <ChevronLeft className="h-5 w-5" />
           </Button>
-          <span className="text-sm text-muted-foreground">
-            {currentPage} / {numPages}
-            {numPages > FREE_PREVIEW_PAGES && (
-              <span className="ml-1 text-xs text-muted-foreground/60">
-                ({FREE_PREVIEW_PAGES} free)
-              </span>
-            )}
-          </span>
-          <Button variant="ghost" size="sm" disabled={currentPage >= numPages} onClick={() => setCurrentPage((p) => p + 1)}>
-            <ChevronRight className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={currentPage >= numPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="absolute right-1 top-1/2 z-10 -translate-y-1/2 rounded-full bg-card/80 shadow-md backdrop-blur-sm hover:bg-card"
+          >
+            <ChevronRight className="h-5 w-5" />
           </Button>
-        </div>
+          <div className="flex items-center justify-center border-t border-border bg-card py-2">
+            <span className="text-sm text-muted-foreground">
+              {currentPage} / {numPages}
+              {numPages > FREE_PREVIEW_PAGES && (
+                <span className="ml-1 text-xs text-muted-foreground/60">
+                  ({FREE_PREVIEW_PAGES} free)
+                </span>
+              )}
+            </span>
+          </div>
+        </>
       )}
 
       {!isLocked && (
