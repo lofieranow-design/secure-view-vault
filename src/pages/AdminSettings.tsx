@@ -48,11 +48,11 @@ export default function AdminSettings() {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Email</Label>
-            <Input value={user?.email ?? ""} disabled className="rounded-xl bg-muted/30" />
+            <Input value={user?.email || ""} disabled className="rounded-xl bg-muted/30" />
           </div>
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">User ID</Label>
-            <Input value={user?.id?.slice(0, 8) + "..." ?? ""} disabled className="rounded-xl bg-muted/30" />
+            <Input value={user?.id ? user.id.slice(0, 8) + "..." : ""} disabled className="rounded-xl bg-muted/30" />
           </div>
         </div>
       ),

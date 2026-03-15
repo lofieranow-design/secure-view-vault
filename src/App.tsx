@@ -33,6 +33,8 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="files" element={<AdminFiles />} />
               <Route path="codes" element={<AdminCodes />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
