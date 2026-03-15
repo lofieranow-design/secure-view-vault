@@ -14,8 +14,9 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, FolderOpen, KeyRound, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, FolderOpen, KeyRound, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
