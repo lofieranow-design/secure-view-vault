@@ -1,23 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { FileText, Image, Video, FileSpreadsheet, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import { lazy, Suspense } from "react";
-import { Loader2 as PdfLoader } from "lucide-react";
+import { FileText, Image, Video, FileSpreadsheet, Loader2 } from "lucide-react";
 
-// Lazy load react-pdf to avoid loading pdfjs in the main bundle
-const PdfViewer = lazy(() =>
-  import("react-pdf").then((mod) => {
-    mod.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${mod.pdfjs.version}/build/pdf.worker.min.mjs`;
-    return { default: ({ url, ...props }: any) => {
-      const [numPages, setNumPages] = props.pageState;
-      const [currentPage, setCurrentPage] = props.currentPageState;
-      return null; // placeholder, we'll use inline
-    }};
-  })
-);
+const PdfViewer = lazy(() => import("@/components/PdfViewer"));
 
 interface SecureViewerProps {
   file: {
@@ -35,8 +22,6 @@ export function SecureViewer({ file, sessionToken, accessCode }: SecureViewerPro
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [numPages, setNumPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchFile = async () => {
@@ -136,69 +121,15 @@ export function SecureViewer({ file, sessionToken, accessCode }: SecureViewerPro
 
         {!loading && !error && url && (
           <div className="relative select-none" onContextMenu={(e) => e.preventDefault()}>
-            {/* PDF Viewer using react-pdf */}
+            {/* PDF Viewer - lazy loaded */}
             {file.filetype.includes("pdf") && (
-              <div className="relative">
-                <div className="flex max-h-[600px] items-start justify-center overflow-auto bg-muted/30 p-4">
-                  <Document
-                    file={url}
-                    onLoadSuccess={({ numPages: n }) => setNumPages(n)}
-                    loading={
-                      <div className="flex items-center justify-center py-20">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                      </div>
-                    }
-                    error={
-                      <div className="py-10 text-center text-sm text-destructive">
-                        Failed to render PDF.
-                      </div>
-                    }
-                  >
-                    <Page
-                      pageNumber={currentPage}
-                      width={Math.min(800, window.innerWidth - 80)}
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
-                    />
-                  </Document>
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
-
-                {/* Page controls */}
-                {numPages > 1 && (
-                  <div className="flex items-center justify-center gap-3 border-t border-border bg-card py-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={currentPage <= 1}
-                      onClick={() => setCurrentPage((p) => p - 1)}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      {currentPage} / {numPages}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={currentPage >= numPages}
-                      onClick={() => setCurrentPage((p) => p + 1)}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-
-                {/* Watermark overlay */}
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-                  <div className="rotate-[-30deg] opacity-10">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <p key={i} className="my-12 whitespace-nowrap font-mono text-xl text-foreground">
-                        {watermarkText}{"    "}{watermarkText}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              }>
+                <PdfViewer url={url} watermarkText={watermarkText} />
+              </Suspense>
             )}
 
             {/* Image Viewer - Canvas with watermark */}
