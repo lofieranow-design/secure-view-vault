@@ -70,23 +70,25 @@ export default function AdminCodes() {
     const code = generateSecureCode();
     let mins = parseInt(duration);
     if (durationUnit === "seconds") mins = Math.max(1, Math.round(mins / 60));
-    // minutes stays as-is
 
-    const { error } = await supabase.from("access_codes").insert({
+    // Copy to clipboard immediately
+    navigator.clipboard.writeText(code).catch(() => {});
+    toast.info("Code copied to clipboard");
+
+    const { data, error } = await supabase.from("access_codes").insert({
       code,
       timer_duration: mins,
       created_by: user?.id,
-    });
+    }).select().single();
 
     if (error) {
       toast.error("Failed to generate code");
     } else {
       toast.success("Code generated");
-      await navigator.clipboard.writeText(code);
-      toast.info("Code copied to clipboard");
+      // Optimistic update instead of full refetch
+      if (data) setCodes((prev) => [data as AccessCode, ...prev]);
     }
     setGenerating(false);
-    fetchData();
   };
 
   const handleRevoke = async (id: string) => {
