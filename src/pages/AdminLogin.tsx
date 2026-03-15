@@ -13,22 +13,21 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signOut, user, isAdmin, isLoading } = useAuth();
+  const { signIn, user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect when auth state confirms admin or show explicit access error
+  // Redirect when auth state confirms admin
   useEffect(() => {
     if (isLoading || !user) return;
 
     if (isAdmin) {
       navigate("/admin", { replace: true });
-      return;
+    } else {
+      // User is authenticated but not admin
+      setError("This account is not authorized for admin access");
+      setLoading(false);
     }
-
-    setError("This account is not authorized for admin access");
-    setLoading(false);
-    void signOut();
-  }, [user, isAdmin, isLoading, navigate, signOut]);
+  }, [user, isAdmin, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
