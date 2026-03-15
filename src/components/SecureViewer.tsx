@@ -4,9 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Image, Video, FileSpreadsheet, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import { Document, Page, pdfjs } from "react-pdf";
+import { lazy, Suspense } from "react";
+import { Loader2 as PdfLoader } from "lucide-react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Lazy load react-pdf to avoid loading pdfjs in the main bundle
+const PdfViewer = lazy(() =>
+  import("react-pdf").then((mod) => {
+    mod.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${mod.pdfjs.version}/build/pdf.worker.min.mjs`;
+    return { default: ({ url, ...props }: any) => {
+      const [numPages, setNumPages] = props.pageState;
+      const [currentPage, setCurrentPage] = props.currentPageState;
+      return null; // placeholder, we'll use inline
+    }};
+  })
+);
 
 interface SecureViewerProps {
   file: {
