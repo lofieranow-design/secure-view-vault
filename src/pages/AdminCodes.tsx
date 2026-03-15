@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { KeyRound, Plus, Ban, Copy, Link, Skull, Trash2, Sparkles } from "lucide-react";
+import { KeyRound, Plus, Ban, Copy, Link, Skull, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface AccessCode {
@@ -22,16 +22,8 @@ interface AccessCode {
   created_at: string;
 }
 
-interface FileRecord {
-  id: string;
-  filename: string;
-  filetype: string;
-}
-
-interface CodeFileMapping {
-  code_id: string;
-  file_id: string;
-}
+interface FileRecord { id: string; filename: string; filetype: string; }
+interface CodeFileMapping { code_id: string; file_id: string; }
 
 function generateSecureCode(length = 20): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -74,17 +66,11 @@ export default function AdminCodes() {
     toast.info("Code copied to clipboard");
 
     const { data, error } = await supabase.from("access_codes").insert({
-      code,
-      timer_duration: mins,
-      created_by: user?.id,
+      code, timer_duration: mins, created_by: user?.id,
     }).select().single();
 
-    if (error) {
-      toast.error("Failed to generate code");
-    } else {
-      toast.success("Code generated successfully");
-      if (data) setCodes((prev) => [data as AccessCode, ...prev]);
-    }
+    if (error) toast.error("Failed to generate code");
+    else { toast.success("Code generated"); if (data) setCodes((prev) => [data as AccessCode, ...prev]); }
     setGenerating(false);
   };
 
@@ -106,7 +92,7 @@ export default function AdminCodes() {
   const handleKillSessions = async (codeId: string) => {
     await supabase.from("viewer_sessions").update({ is_active: false }).eq("code_id", codeId);
     await supabase.from("access_codes").update({ status: "expired" }).eq("id", codeId);
-    toast.success("All sessions killed and code expired");
+    toast.success("Sessions killed");
     fetchData();
   };
 
@@ -116,8 +102,7 @@ export default function AdminCodes() {
   };
 
   const openLinkDialog = (code: AccessCode) => {
-    const linked = mappings.filter((m) => m.code_id === code.id).map((m) => m.file_id);
-    setSelectedFiles(linked);
+    setSelectedFiles(mappings.filter((m) => m.code_id === code.id).map((m) => m.file_id));
     setLinkDialogCode(code);
   };
 
@@ -125,24 +110,21 @@ export default function AdminCodes() {
     if (!linkDialogCode) return;
     await supabase.from("code_file_mappings").delete().eq("code_id", linkDialogCode.id);
     if (selectedFiles.length > 0) {
-      const inserts = selectedFiles.map((file_id) => ({
-        code_id: linkDialogCode.id,
-        file_id,
-      }));
-      await supabase.from("code_file_mappings").insert(inserts);
+      await supabase.from("code_file_mappings").insert(
+        selectedFiles.map((file_id) => ({ code_id: linkDialogCode.id, file_id }))
+      );
     }
     toast.success("File links updated");
     setLinkDialogCode(null);
     fetchData();
   };
 
-  const getLinkedFileCount = (codeId: string) =>
-    mappings.filter((m) => m.code_id === codeId).length;
+  const getLinkedFileCount = (codeId: string) => mappings.filter((m) => m.code_id === codeId).length;
 
   const statusBadge = (status: string) => {
-    if (status === "active") return <Badge className="bg-success/10 text-success border-success/20 border">Active</Badge>;
-    if (status === "revoked") return <Badge className="bg-destructive/10 text-destructive border-destructive/20 border">Revoked</Badge>;
-    return <Badge className="bg-muted text-muted-foreground border-border border">Expired</Badge>;
+    if (status === "active") return <Badge variant="outline" className="text-success border-success/30 text-[11px]">Active</Badge>;
+    if (status === "revoked") return <Badge variant="outline" className="text-destructive border-destructive/30 text-[11px]">Revoked</Badge>;
+    return <Badge variant="outline" className="text-muted-foreground text-[11px]">Expired</Badge>;
   };
 
   const formatDuration = (mins: number) => {
@@ -152,166 +134,116 @@ export default function AdminCodes() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-5">
       <div>
-        <h1 className="font-display text-3xl text-foreground">Access Codes</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Generate and manage preview access codes
-        </p>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Access Codes</h1>
+        <p className="text-sm text-muted-foreground">Generate and manage preview access codes</p>
       </div>
 
-      {/* Generate Code Card */}
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <div className="flex items-center gap-2 mb-5">
-          <div className="rounded-xl bg-primary/10 p-2.5">
-            <Sparkles className="h-5 w-5 text-primary" />
+      {/* Generate */}
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h2 className="text-sm font-medium text-foreground">Generate New Code</h2>
+        <p className="text-[13px] text-muted-foreground">Create a shareable access code for clients</p>
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-[13px]">Duration</Label>
+            <Input type="number" min={1} value={duration} onChange={(e) => setDuration(e.target.value)} className="w-20 h-8 text-[13px]" />
           </div>
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Generate New Code</h2>
-            <p className="text-xs text-muted-foreground">Create a shareable access code for clients</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Duration</Label>
-            <Input
-              type="number"
-              min={1}
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              className="w-24 rounded-xl"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Unit</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[13px]">Unit</Label>
             <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "seconds" | "minutes")}>
-              <SelectTrigger className="w-28 rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="w-24 h-8 text-[13px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="seconds">Seconds</SelectItem>
                 <SelectItem value="minutes">Minutes</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleGenerate} disabled={generating} className="gradient-gold text-primary-foreground border-0 hover:opacity-90 rounded-xl">
-            <KeyRound className="mr-2 h-4 w-4" />
-            {generating ? "Generating..." : "Generate Code"}
+          <Button onClick={handleGenerate} disabled={generating} size="sm" className="gradient-gold text-primary-foreground border-0 hover:opacity-90">
+            <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+            {generating ? "Generating…" : "Generate"}
           </Button>
         </div>
       </div>
 
-      {/* Codes Table */}
-      <div className="rounded-2xl border border-border bg-card overflow-hidden">
-        <div className="border-b border-border px-6 py-4">
-          <h2 className="text-base font-semibold text-foreground">All Codes</h2>
-          <p className="text-xs text-muted-foreground">{codes.length} total codes</p>
+      {/* Table */}
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="border-b border-border px-5 py-3">
+          <h2 className="text-sm font-medium text-foreground">All Codes</h2>
+          <p className="text-xs text-muted-foreground">{codes.length} total</p>
         </div>
         {codes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <KeyRound className="h-10 w-10 text-muted-foreground/30" />
-            <p className="mt-3 text-sm text-muted-foreground">No codes generated yet</p>
+          <div className="flex flex-col items-center justify-center py-14">
+            <KeyRound className="h-6 w-6 text-muted-foreground/30" />
+            <p className="mt-2 text-sm text-muted-foreground">No codes generated yet</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Code</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Status</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Timer</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Files</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Created</TableHead>
-                  <TableHead className="w-[160px] text-xs uppercase tracking-wider text-muted-foreground/60">Actions</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground">Code</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground">Timer</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground">Files</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground">Created</TableHead>
+                  <TableHead className="w-[140px] text-[11px] uppercase tracking-wider text-muted-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {codes.map((code) => (
-                  <TableRow key={code.id} className="hover:bg-muted/30 transition-colors">
+                  <TableRow key={code.id} className="hover:bg-accent/50 transition-colors">
                     <TableCell>
-                      <code className="font-mono text-xs bg-muted px-2.5 py-1 rounded-lg">
-                        {code.code.slice(0, 8)}…
-                      </code>
+                      <code className="font-mono text-xs text-foreground">{code.code.slice(0, 10)}…</code>
                     </TableCell>
                     <TableCell>{statusBadge(code.status)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground font-mono">
-                      {formatDuration(code.timer_duration)}
-                    </TableCell>
+                    <TableCell className="text-[13px] text-muted-foreground font-mono">{formatDuration(code.timer_duration)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="rounded-lg">{getLinkedFileCount(code.id)} files</Badge>
+                      <span className="text-[13px] text-muted-foreground">{getLinkedFileCount(code.id)} files</span>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(code.created_at).toLocaleDateString()}
-                    </TableCell>
+                    <TableCell className="text-[13px] text-muted-foreground">{new Date(code.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex gap-0.5">
-                        <Button variant="ghost" size="icon" onClick={() => handleCopy(code.code)} title="Copy code" className="h-8 w-8 rounded-lg">
+                        <Button variant="ghost" size="icon" onClick={() => handleCopy(code.code)} title="Copy" className="h-7 w-7">
                           <Copy className="h-3.5 w-3.5" />
                         </Button>
                         <Dialog open={linkDialogCode?.id === code.id} onOpenChange={(open) => !open && setLinkDialogCode(null)}>
                           <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => openLinkDialog(code)} title="Link files" className="h-8 w-8 rounded-lg">
+                            <Button variant="ghost" size="icon" onClick={() => openLinkDialog(code)} title="Link files" className="h-7 w-7">
                               <Link className="h-3.5 w-3.5" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="rounded-2xl">
-                            <DialogHeader>
-                              <DialogTitle>Link Files to Code</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-2 max-h-[400px] overflow-auto">
+                          <DialogContent>
+                            <DialogHeader><DialogTitle>Link Files to Code</DialogTitle></DialogHeader>
+                            <div className="space-y-1 max-h-[400px] overflow-auto">
                               {files.length === 0 ? (
-                                <p className="text-muted-foreground text-sm">No files uploaded yet</p>
-                              ) : (
-                                files.map((f) => (
-                                  <label key={f.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted cursor-pointer transition-colors">
-                                    <Checkbox
-                                      checked={selectedFiles.includes(f.id)}
-                                      onCheckedChange={(checked) => {
-                                        setSelectedFiles((prev) =>
-                                          checked ? [...prev, f.id] : prev.filter((id) => id !== f.id)
-                                        );
-                                      }}
-                                    />
-                                    <span className="text-sm">{f.filename}</span>
-                                  </label>
-                                ))
-                              )}
+                                <p className="text-muted-foreground text-sm py-4 text-center">No files uploaded</p>
+                              ) : files.map((f) => (
+                                <label key={f.id} className="flex items-center gap-3 p-2.5 rounded-md hover:bg-accent cursor-pointer transition-colors">
+                                  <Checkbox
+                                    checked={selectedFiles.includes(f.id)}
+                                    onCheckedChange={(checked) => {
+                                      setSelectedFiles((prev) => checked ? [...prev, f.id] : prev.filter((id) => id !== f.id));
+                                    }}
+                                  />
+                                  <span className="text-[13px]">{f.filename}</span>
+                                </label>
+                              ))}
                             </div>
-                            <Button onClick={saveFileLinks} className="w-full mt-4 gradient-gold text-primary-foreground border-0 rounded-xl">
-                              Save Links
-                            </Button>
+                            <Button onClick={saveFileLinks} size="sm" className="w-full mt-3 gradient-gold text-primary-foreground border-0">Save Links</Button>
                           </DialogContent>
                         </Dialog>
                         {code.status === "active" && (
                           <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10"
-                              onClick={() => handleKillSessions(code.id)}
-                              title="Kill sessions"
-                            >
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleKillSessions(code.id)} title="Kill sessions">
                               <Skull className="h-3.5 w-3.5" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10"
-                              onClick={() => handleRevoke(code.id)}
-                              title="Revoke"
-                            >
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleRevoke(code.id)} title="Revoke">
                               <Ban className="h-3.5 w-3.5" />
                             </Button>
                           </>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteCode(code.id)}
-                          title="Delete"
-                        >
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteCode(code.id)} title="Delete">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
