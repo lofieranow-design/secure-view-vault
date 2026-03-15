@@ -47,6 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const syncAuthState = async (nextSession: Session | null) => {
       if (!mounted) return;
 
+      // Mark loading BEFORE async work so consumers wait for the result
+      setIsLoading(true);
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
