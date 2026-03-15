@@ -290,8 +290,10 @@ export default function ViewerPage() {
       <div className="flex min-h-screen flex-col bg-background">
         <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border bg-card px-4 shadow-sm">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain" />
-            <span className="font-display text-sm font-semibold text-foreground">DigitalPro</span>
+            <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+              <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain" />
+              <span className="font-display text-sm font-semibold text-foreground">DigitalPro</span>
+            </a>
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="font-mono text-xs">
