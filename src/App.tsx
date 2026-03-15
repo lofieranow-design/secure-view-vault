@@ -12,6 +12,8 @@ import AdminLayout from "./pages/AdminLayout";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminFiles from "./pages/AdminFiles";
 import AdminCodes from "./pages/AdminCodes";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminSettings from "./pages/AdminSettings";
 import ViewerPage from "./pages/ViewerPage";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="files" element={<AdminFiles />} />
               <Route path="codes" element={<AdminCodes />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
