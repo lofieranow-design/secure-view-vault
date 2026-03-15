@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,15 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect when auth state confirms admin
+  useEffect(() => {
+    if (!isLoading && user && isAdmin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [user, isAdmin, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,10 +31,9 @@ export default function AdminLogin() {
     const { error } = await signIn(email, password);
     if (error) {
       setError("Invalid credentials");
-    } else {
-      navigate("/admin");
+      setLoading(false);
     }
-    setLoading(false);
+    // Don't navigate here — the useEffect above handles it after auth state updates
   };
 
   return (
