@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { SectionNav } from "@/components/SectionNav";
 
 export default function AdminLogin() {
@@ -47,11 +48,9 @@ export default function AdminLogin() {
       <Card className="w-full max-w-md border-border shadow-lg">
         <CardHeader className="text-center space-y-4 pb-2">
           <SectionNav />
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-            <Shield className="h-7 w-7 text-primary-foreground" />
-          </div>
+          <img src={logo} alt="DigitalPro" className="mx-auto h-20 w-20 rounded-xl object-contain" />
           <CardTitle className="font-display text-2xl font-bold text-foreground">
-            Digital Vault
+            DigitalPro
           </CardTitle>
           <p className="text-sm text-muted-foreground">Admin access only</p>
         </CardHeader>

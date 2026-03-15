@@ -14,8 +14,9 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, FolderOpen, KeyRound, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, FolderOpen, KeyRound, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
@@ -38,12 +39,10 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border pb-4">
         <div className="flex items-center gap-3 px-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent">
-            <Shield className="h-4 w-4 text-sidebar-accent-foreground" />
-          </div>
+          <img src={logo} alt="DigitalPro" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
           {!collapsed && (
             <span className="font-display text-base font-bold text-sidebar-primary">
-              Digital Vault
+              DigitalPro
             </span>
           )}
         </div>

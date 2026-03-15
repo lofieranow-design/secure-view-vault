@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, KeyRound, Eye, Clock, AlertCircle, Loader2, LogOut, FileText, Image, Video, FileSpreadsheet } from "lucide-react";
+import { KeyRound, Eye, Clock, AlertCircle, Loader2, LogOut, FileText, Image, Video, FileSpreadsheet } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { SectionNav } from "@/components/SectionNav";
 import { SecureViewer } from "@/components/SecureViewer";
 
@@ -212,11 +213,9 @@ export default function ViewerPage() {
         <Card className="w-full max-w-md border-border shadow-lg">
           <CardHeader className="text-center space-y-4 pb-2">
             <SectionNav />
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-              <Shield className="h-7 w-7 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="DigitalPro" className="mx-auto h-20 w-20 rounded-xl object-contain" />
             <CardTitle className="font-display text-2xl font-bold text-foreground">
-              Digital Vault
+              DigitalPro
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               Enter your access code to view protected content
@@ -289,8 +288,8 @@ export default function ViewerPage() {
       <div className="flex min-h-screen flex-col bg-background">
         <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border bg-card px-4 shadow-sm">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
-            <span className="font-display text-sm font-semibold text-foreground">Digital Vault</span>
+            <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain" />
+            <span className="font-display text-sm font-semibold text-foreground">DigitalPro</span>
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="font-mono text-xs">
@@ -381,7 +380,7 @@ export default function ViewerPage() {
           <Button variant="ghost" size="sm" onClick={backToGallery}>
             ← Back
           </Button>
-          <Shield className="h-4 w-4 text-primary" />
+          <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain" />
           <span className="font-display text-sm font-semibold text-foreground">
             {activeFile?.filename}
           </span>
