@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { KeyRound, Eye, Clock, AlertCircle, Loader2, LogOut, FileText, Image, Video, FileSpreadsheet } from "lucide-react";
+import { KeyRound, Eye, Clock, AlertCircle, Loader2, LogOut, FileText, Image, Video, FileSpreadsheet, ArrowLeft, Shield } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SectionNav } from "@/components/SectionNav";
 import { SecureViewer } from "@/components/SecureViewer";
@@ -37,12 +36,8 @@ export default function ViewerPage() {
   const [codeData, setCodeData] = useState<CodeData | null>(null);
   const [files, setFiles] = useState<LinkedFile[]>([]);
   const [sessionToken, setSessionToken] = useState<string>("");
-
-  // Per-file timers: fileId → seconds remaining
   const [fileTimers, setFileTimers] = useState<Record<string, number>>({});
-  // Which files have been opened (timer started)
   const [openedFiles, setOpenedFiles] = useState<Set<string>>(new Set());
-  // Currently viewing file
   const [activeFile, setActiveFile] = useState<LinkedFile | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -50,12 +45,10 @@ export default function ViewerPage() {
     if (!code.trim()) return;
     setLoading(true);
     setError("");
-
     try {
       const { data, error: fnError } = await supabase.functions.invoke("validate-code", {
         body: { code: code.trim() },
       });
-
       if (fnError || !data?.valid) {
         setError(data?.message || "Invalid or expired code");
         setState("error");
@@ -65,13 +58,9 @@ export default function ViewerPage() {
         if (data.codeData.activated_at) {
           setSessionToken(data.sessionToken || "");
           const expiresAt = new Date(data.codeData.expires_at).getTime();
-          const now = Date.now();
-          const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
-          if (remaining <= 0) {
-            setState("expired");
-          } else {
-            setState("gallery");
-          }
+          const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+          if (remaining <= 0) setState("expired");
+          else setState("gallery");
         } else {
           setState("verified");
         }
@@ -86,12 +75,10 @@ export default function ViewerPage() {
   const activateViewing = async () => {
     if (!codeData) return;
     setLoading(true);
-
     try {
       const { data, error: fnError } = await supabase.functions.invoke("activate-session", {
         body: { code: codeData.code },
       });
-
       if (fnError || !data?.success) {
         setError(data?.message || "Failed to activate session");
         setState("error");
@@ -106,7 +93,6 @@ export default function ViewerPage() {
     setLoading(false);
   };
 
-  // Per-file timer: ticks down active file's timer
   useEffect(() => {
     if (state !== "viewing" || !activeFile) return;
     timerRef.current = setInterval(() => {
@@ -114,7 +100,6 @@ export default function ViewerPage() {
         const current = prev[activeFile.id] ?? 0;
         if (current <= 1) {
           clearInterval(timerRef.current);
-          // File timer expired, go back to gallery
           setActiveFile(null);
           setState("gallery");
           return { ...prev, [activeFile.id]: 0 };
@@ -125,7 +110,6 @@ export default function ViewerPage() {
     return () => clearInterval(timerRef.current);
   }, [state, activeFile]);
 
-  // Check if all files have been opened and their timers expired → code is dead
   useEffect(() => {
     if (state !== "gallery" || files.length === 0) return;
     const allOpened = files.every((f) => openedFiles.has(f.id));
@@ -135,19 +119,16 @@ export default function ViewerPage() {
     });
     if (allOpened && allExpired) {
       setState("expired");
-      // Kill the session
       supabase.functions.invoke("kill-session", { body: { sessionToken } }).catch(() => {});
     }
   }, [state, files, openedFiles, fileTimers, sessionToken]);
 
   const openFile = (file: LinkedFile) => {
     if (!openedFiles.has(file.id)) {
-      // First open: set timer
       const timerSeconds = (codeData?.timer_duration ?? 1) * 60;
       setFileTimers((prev) => ({ ...prev, [file.id]: timerSeconds }));
       setOpenedFiles((prev) => new Set(prev).add(file.id));
     }
-    // If timer already expired for this file, don't allow reopening
     if (fileTimers[file.id] !== undefined && fileTimers[file.id] <= 0) return;
     setActiveFile(file);
     setState("viewing");
@@ -161,15 +142,12 @@ export default function ViewerPage() {
 
   const killSession = async () => {
     setLoading(true);
-    try {
-      await supabase.functions.invoke("kill-session", { body: { sessionToken } });
-    } catch {}
+    try { await supabase.functions.invoke("kill-session", { body: { sessionToken } }); } catch {}
     clearInterval(timerRef.current);
     setState("expired");
     setLoading(false);
   };
 
-  // Content protection
   useEffect(() => {
     if (state !== "viewing") return;
     const preventActions = (e: Event) => { e.preventDefault(); return false; };
@@ -205,118 +183,135 @@ export default function ViewerPage() {
     return <FileSpreadsheet className="h-8 w-8" />;
   };
 
-
-  // Entry / Verified / Error states
+  // Entry / Verified / Error / Expired states
   if (state === "entry" || state === "error" || state === "verified" || state === "expired") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md border-border shadow-lg">
-          <CardHeader className="text-center space-y-4 pb-2">
-            <SectionNav />
-            <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer">
-              <img src={logo} alt="DigitalPro" className="mx-auto h-20 w-20 rounded-xl object-contain transition-transform hover:scale-105" />
-            </a>
-            <CardTitle className="font-display text-2xl font-bold text-foreground">
-              DigitalPro
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Enter your access code to view protected content
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {state === "expired" && (
-              <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                <Clock className="h-4 w-4 shrink-0" />
-                Your access has expired.
-              </div>
-            )}
-            {error && state === "error" && (
-              <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                {error}
-              </div>
-            )}
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
+        </div>
 
-            {(state === "entry" || state === "error") && (
-              <>
-                <div className="space-y-2">
+        <div className="relative w-full max-w-md animate-scale-in">
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-xl shadow-primary/5">
+            <div className="mb-6">
+              <SectionNav />
+            </div>
+
+            <div className="mb-8 text-center">
+              <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer" className="inline-block">
+                <div className="relative mx-auto h-16 w-16">
+                  <img src={logo} alt="DigitalPro" className="h-16 w-16 rounded-2xl object-contain transition-transform hover:scale-105" />
+                  <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/20 to-transparent -z-10" />
+                </div>
+              </a>
+              <h1 className="mt-4 font-display text-2xl text-foreground">DigitalPro</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Enter your access code to preview content
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {state === "expired" && (
+                <div className="flex items-center gap-2.5 rounded-xl bg-destructive/10 p-3.5 text-sm text-destructive animate-fade-in">
+                  <Clock className="h-4 w-4 shrink-0" />
+                  Your access has expired.
+                </div>
+              )}
+              {error && state === "error" && (
+                <div className="flex items-center gap-2.5 rounded-xl bg-destructive/10 p-3.5 text-sm text-destructive animate-fade-in">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              {(state === "entry" || state === "error") && (
+                <>
                   <Input
                     placeholder="Enter access code"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="font-mono text-center tracking-wider"
+                    className="font-mono text-center tracking-wider rounded-xl h-12"
                     onKeyDown={(e) => e.key === "Enter" && verifyCode()}
                   />
-                </div>
-                <Button onClick={verifyCode} className="w-full" disabled={loading || !code.trim()}>
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
-                  Verify Code
-                </Button>
-              </>
-            )}
+                  <Button onClick={verifyCode} className="w-full h-11 rounded-xl gradient-gold text-primary-foreground border-0 hover:opacity-90" disabled={loading || !code.trim()}>
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+                    Verify Code
+                  </Button>
+                </>
+              )}
 
-            {state === "verified" && codeData && (
-              <div className="space-y-4">
-                <div className="rounded-md bg-success/10 p-4 text-center">
-                  <p className="font-medium text-success">Code verified!</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {files.length} file(s) available • {formatTime(codeData.timer_duration * 60)} per file
+              {state === "verified" && codeData && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="rounded-xl bg-success/10 p-5 text-center">
+                    <div className="mx-auto mb-2 h-10 w-10 rounded-full bg-success/20 flex items-center justify-center">
+                      <Shield className="h-5 w-5 text-success" />
+                    </div>
+                    <p className="font-medium text-success">Code verified!</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {files.length} file(s) available • {formatTime(codeData.timer_duration * 60)} per file
+                    </p>
+                  </div>
+                  <Button onClick={activateViewing} className="w-full h-11 rounded-xl gradient-gold text-primary-foreground border-0 hover:opacity-90" disabled={loading}>
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eye className="mr-2 h-4 w-4" />}
+                    Browse Content
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Each file has its own timer that starts when you open it
                   </p>
                 </div>
-                <Button onClick={activateViewing} className="w-full" disabled={loading}>
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eye className="mr-2 h-4 w-4" />}
-                  Browse Content
-                </Button>
-                <p className="text-center text-xs text-muted-foreground">
-                  Each file has its own timer that starts when you open it
-                </p>
-              </div>
-            )}
+              )}
 
-            {state === "expired" && (
-              <Button onClick={() => { setState("entry"); setCode(""); setError(""); }} variant="outline" className="w-full">
-                Enter Another Code
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+              {state === "expired" && (
+                <Button onClick={() => { setState("entry"); setCode(""); setError(""); }} variant="outline" className="w-full h-11 rounded-xl">
+                  Enter Another Code
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground/50">
+            Protected by DigitalPro • Secure Preview
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Gallery state — thumbnail grid
+  // Gallery state
   if (state === "gallery") {
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border bg-card px-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-              <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain" />
-              <span className="font-display text-sm font-semibold text-foreground">DigitalPro</span>
+        <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 glass px-6">
+          <div className="flex items-center gap-3">
+            <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
+              <img src={logo} alt="DigitalPro" className="h-7 w-7 rounded-lg object-contain" />
+              <span className="font-display text-sm text-foreground">DigitalPro</span>
             </a>
           </div>
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="font-mono text-xs">
+            <Badge variant="outline" className="font-mono text-xs rounded-lg">
               {openedFiles.size}/{files.length} opened
             </Badge>
             <Button
               variant="ghost"
               size="sm"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="text-destructive hover:bg-destructive/10 rounded-lg"
               onClick={killSession}
               disabled={loading}
             >
-              <LogOut className="mr-1 h-3.5 w-3.5" />
+              <LogOut className="mr-1.5 h-3.5 w-3.5" />
               End Session
             </Button>
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-8">
-          <div className="mx-auto max-w-4xl">
-            <h2 className="mb-6 text-center font-display text-xl font-bold text-foreground">
-              Select a file to view
-            </h2>
+        <main className="flex-1 p-6 md:p-8">
+          <div className="mx-auto max-w-4xl animate-fade-in">
+            <div className="mb-8 text-center">
+              <h2 className="font-display text-2xl text-foreground">Select a file to preview</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Each file has its own countdown timer</p>
+            </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
               {files.map((file) => {
                 const isOpened = openedFiles.has(file.id);
@@ -329,29 +324,23 @@ export default function ViewerPage() {
                     key={file.id}
                     onClick={() => openFile(file)}
                     disabled={isTimerExpired}
-                    className={`group relative flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all
+                    className={`group relative flex flex-col items-center gap-3 rounded-2xl border p-5 text-center transition-all duration-200
                       ${isTimerExpired
-                        ? "cursor-not-allowed border-border bg-muted opacity-50"
-                        : "cursor-pointer border-border bg-card hover:border-primary hover:shadow-md"
+                        ? "cursor-not-allowed border-border bg-muted/50 opacity-50"
+                        : "cursor-pointer border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
                       }`}
                   >
-                    {/* Thumbnail or icon */}
-                    <div className="flex h-24 w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
+                    <div className="flex h-24 w-full items-center justify-center overflow-hidden rounded-xl bg-muted/50">
                       {thumbUrl ? (
-                        <img src={thumbUrl} alt={file.filename} className="h-full w-full object-cover" />
+                        <img src={thumbUrl} alt={file.filename} className="h-full w-full object-cover rounded-xl" />
                       ) : (
-                        <div className="text-muted-foreground">{getFileIcon(file.filetype)}</div>
+                        <div className="text-muted-foreground/40">{getFileIcon(file.filetype)}</div>
                       )}
                     </div>
-
-                    {/* Filename */}
                     <p className="w-full truncate text-xs font-medium text-foreground">{file.filename}</p>
-
-                    {/* Timer status */}
                     {isOpened && (
                       <Badge
-                        variant={isTimerExpired ? "secondary" : "outline"}
-                        className="font-mono text-[10px]"
+                        className={`text-[10px] rounded-lg ${isTimerExpired ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary border-primary/20 border"}`}
                       >
                         {isTimerExpired ? "Expired" : (
                           <>
@@ -362,7 +351,7 @@ export default function ViewerPage() {
                       </Badge>
                     )}
                     {!isOpened && (
-                      <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground rounded-lg">
                         Not opened
                       </Badge>
                     )}
@@ -376,26 +365,27 @@ export default function ViewerPage() {
     );
   }
 
-  // Viewing state — single file
+  // Viewing state
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border bg-card px-4 shadow-sm">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={backToGallery}>
-            ← Back
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 glass px-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={backToGallery} className="rounded-lg">
+            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            Back
           </Button>
+          <div className="h-5 w-px bg-border" />
           <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer">
-            <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain transition-opacity hover:opacity-80" />
+            <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded-lg object-contain transition-opacity hover:opacity-80" />
           </a>
-          <span className="font-display text-sm font-semibold text-foreground">
+          <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
             {activeFile?.filename}
           </span>
         </div>
         <div className="flex items-center gap-3">
           {activeFile && (
             <Badge
-              variant="outline"
-              className={`font-mono text-sm ${(fileTimers[activeFile.id] ?? 0) <= 60 ? "animate-pulse-slow border-destructive text-destructive" : ""}`}
+              className={`font-mono text-sm rounded-lg ${(fileTimers[activeFile.id] ?? 0) <= 60 ? "animate-pulse-slow bg-destructive/10 text-destructive border-destructive/20 border" : "bg-primary/10 text-primary border-primary/20 border"}`}
             >
               <Clock className="mr-1 h-3 w-3" />
               {formatTime(fileTimers[activeFile.id] ?? 0)}
@@ -404,18 +394,18 @@ export default function ViewerPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="text-destructive hover:bg-destructive/10 rounded-lg"
             onClick={killSession}
             disabled={loading}
           >
-            <LogOut className="mr-1 h-3.5 w-3.5" />
-            End Session
+            <LogOut className="mr-1.5 h-3.5 w-3.5" />
+            End
           </Button>
         </div>
       </header>
 
       <main className="flex-1 p-4 md:p-6">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-5xl animate-fade-in">
           {activeFile && (
             <SecureViewer
               file={activeFile}

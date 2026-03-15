@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { KeyRound, Plus, Ban, Copy, Link, Skull, Trash2 } from "lucide-react";
+import { KeyRound, Plus, Ban, Copy, Link, Skull, Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface AccessCode {
@@ -71,7 +70,6 @@ export default function AdminCodes() {
     let mins = parseInt(duration);
     if (durationUnit === "seconds") mins = Math.max(1, Math.round(mins / 60));
 
-    // Copy to clipboard immediately
     navigator.clipboard.writeText(code).catch(() => {});
     toast.info("Code copied to clipboard");
 
@@ -84,8 +82,7 @@ export default function AdminCodes() {
     if (error) {
       toast.error("Failed to generate code");
     } else {
-      toast.success("Code generated");
-      // Optimistic update instead of full refetch
+      toast.success("Code generated successfully");
       if (data) setCodes((prev) => [data as AccessCode, ...prev]);
     }
     setGenerating(false);
@@ -98,7 +95,6 @@ export default function AdminCodes() {
   };
 
   const handleDeleteCode = async (id: string) => {
-    // Delete mappings first, then sessions, activity logs, then the code
     await supabase.from("code_file_mappings").delete().eq("code_id", id);
     await supabase.from("viewer_sessions").delete().eq("code_id", id);
     await supabase.from("activity_log").delete().eq("code_id", id);
@@ -108,9 +104,7 @@ export default function AdminCodes() {
   };
 
   const handleKillSessions = async (codeId: string) => {
-    // Deactivate all sessions for this code
     await supabase.from("viewer_sessions").update({ is_active: false }).eq("code_id", codeId);
-    // Expire the code
     await supabase.from("access_codes").update({ status: "expired" }).eq("id", codeId);
     toast.success("All sessions killed and code expired");
     fetchData();
@@ -129,9 +123,7 @@ export default function AdminCodes() {
 
   const saveFileLinks = async () => {
     if (!linkDialogCode) return;
-    // Remove existing mappings
     await supabase.from("code_file_mappings").delete().eq("code_id", linkDialogCode.id);
-    // Insert new
     if (selectedFiles.length > 0) {
       const inserts = selectedFiles.map((file_id) => ({
         code_id: linkDialogCode.id,
@@ -148,9 +140,9 @@ export default function AdminCodes() {
     mappings.filter((m) => m.code_id === codeId).length;
 
   const statusBadge = (status: string) => {
-    if (status === "active") return <Badge className="bg-success text-success-foreground">Active</Badge>;
-    if (status === "revoked") return <Badge variant="destructive">Revoked</Badge>;
-    return <Badge variant="secondary">Expired</Badge>;
+    if (status === "active") return <Badge className="bg-success/10 text-success border-success/20 border">Active</Badge>;
+    if (status === "revoked") return <Badge className="bg-destructive/10 text-destructive border-destructive/20 border">Revoked</Badge>;
+    return <Badge className="bg-muted text-muted-foreground border-border border">Expired</Badge>;
   };
 
   const formatDuration = (mins: number) => {
@@ -161,108 +153,118 @@ export default function AdminCodes() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold text-foreground">Access Codes</h1>
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-3xl text-foreground">Access Codes</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Generate and manage preview access codes
+        </p>
       </div>
 
       {/* Generate Code Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Plus className="h-5 w-5" /> Generate New Code
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="space-y-2">
-              <Label>Timer Duration</Label>
-              <Input
-                type="number"
-                min={1}
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="w-24"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Unit</Label>
-              <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "seconds" | "minutes")}>
-                <SelectTrigger className="w-28">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="seconds">Seconds</SelectItem>
-                  <SelectItem value="minutes">Minutes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button onClick={handleGenerate} disabled={generating}>
-              <KeyRound className="mr-2 h-4 w-4" />
-              {generating ? "Generating..." : "Generate Code"}
-            </Button>
+      <div className="rounded-2xl border border-border bg-card p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="rounded-xl bg-primary/10 p-2.5">
+            <Sparkles className="h-5 w-5 text-primary" />
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Generate New Code</h2>
+            <p className="text-xs text-muted-foreground">Create a shareable access code for clients</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Duration</Label>
+            <Input
+              type="number"
+              min={1}
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="w-24 rounded-xl"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Unit</Label>
+            <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "seconds" | "minutes")}>
+              <SelectTrigger className="w-28 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="seconds">Seconds</SelectItem>
+                <SelectItem value="minutes">Minutes</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleGenerate} disabled={generating} className="gradient-gold text-primary-foreground border-0 hover:opacity-90 rounded-xl">
+            <KeyRound className="mr-2 h-4 w-4" />
+            {generating ? "Generating..." : "Generate Code"}
+          </Button>
+        </div>
+      </div>
 
       {/* Codes Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">All Codes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {codes.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">No codes generated yet</p>
-          ) : (
+      <div className="rounded-2xl border border-border bg-card overflow-hidden">
+        <div className="border-b border-border px-6 py-4">
+          <h2 className="text-base font-semibold text-foreground">All Codes</h2>
+          <p className="text-xs text-muted-foreground">{codes.length} total codes</p>
+        </div>
+        {codes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <KeyRound className="h-10 w-10 text-muted-foreground/30" />
+            <p className="mt-3 text-sm text-muted-foreground">No codes generated yet</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Timer</TableHead>
-                  <TableHead>Files</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="w-[140px]">Actions</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Code</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Status</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Timer</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Files</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/60">Created</TableHead>
+                  <TableHead className="w-[160px] text-xs uppercase tracking-wider text-muted-foreground/60">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {codes.map((code) => (
-                  <TableRow key={code.id}>
+                  <TableRow key={code.id} className="hover:bg-muted/30 transition-colors">
                     <TableCell>
-                      <code className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                      <code className="font-mono text-xs bg-muted px-2.5 py-1 rounded-lg">
                         {code.code.slice(0, 8)}…
                       </code>
                     </TableCell>
                     <TableCell>{statusBadge(code.status)}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground font-mono">
                       {formatDuration(code.timer_duration)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{getLinkedFileCount(code.id)} files</Badge>
+                      <Badge variant="outline" className="rounded-lg">{getLinkedFileCount(code.id)} files</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground">
                       {new Date(code.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleCopy(code.code)} title="Copy code">
-                          <Copy className="h-4 w-4" />
+                      <div className="flex gap-0.5">
+                        <Button variant="ghost" size="icon" onClick={() => handleCopy(code.code)} title="Copy code" className="h-8 w-8 rounded-lg">
+                          <Copy className="h-3.5 w-3.5" />
                         </Button>
                         <Dialog open={linkDialogCode?.id === code.id} onOpenChange={(open) => !open && setLinkDialogCode(null)}>
                           <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => openLinkDialog(code)} title="Link files">
-                              <Link className="h-4 w-4" />
+                            <Button variant="ghost" size="icon" onClick={() => openLinkDialog(code)} title="Link files" className="h-8 w-8 rounded-lg">
+                              <Link className="h-3.5 w-3.5" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent>
+                          <DialogContent className="rounded-2xl">
                             <DialogHeader>
                               <DialogTitle>Link Files to Code</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-3 max-h-[400px] overflow-auto">
+                            <div className="space-y-2 max-h-[400px] overflow-auto">
                               {files.length === 0 ? (
                                 <p className="text-muted-foreground text-sm">No files uploaded yet</p>
                               ) : (
                                 files.map((f) => (
-                                  <label key={f.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted cursor-pointer">
+                                  <label key={f.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted cursor-pointer transition-colors">
                                     <Checkbox
                                       checked={selectedFiles.includes(f.id)}
                                       onCheckedChange={(checked) => {
@@ -276,7 +278,7 @@ export default function AdminCodes() {
                                 ))
                               )}
                             </div>
-                            <Button onClick={saveFileLinks} className="w-full mt-4">
+                            <Button onClick={saveFileLinks} className="w-full mt-4 gradient-gold text-primary-foreground border-0 rounded-xl">
                               Save Links
                             </Button>
                           </DialogContent>
@@ -286,31 +288,31 @@ export default function AdminCodes() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-destructive hover:bg-destructive/10"
+                              className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10"
                               onClick={() => handleKillSessions(code.id)}
-                              title="Kill active sessions"
+                              title="Kill sessions"
                             >
-                              <Skull className="h-4 w-4" />
+                              <Skull className="h-3.5 w-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-destructive hover:bg-destructive/10"
+                              className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10"
                               onClick={() => handleRevoke(code.id)}
                               title="Revoke"
                             >
-                              <Ban className="h-4 w-4" />
+                              <Ban className="h-3.5 w-3.5" />
                             </Button>
                           </>
                         )}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-destructive hover:bg-destructive/10"
+                          className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10"
                           onClick={() => handleDeleteCode(code.id)}
-                          title="Delete code"
+                          title="Delete"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </TableCell>
@@ -318,9 +320,9 @@ export default function AdminCodes() {
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
