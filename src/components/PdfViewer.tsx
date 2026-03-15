@@ -85,9 +85,9 @@ export default function PdfViewer({ url, watermarkText }: PdfViewerProps) {
 
       {!isLocked && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-          <div className="rotate-[-30deg] opacity-10">
+        <div className="rotate-[-30deg] opacity-30">
             {Array.from({ length: 8 }).map((_, i) => (
-              <p key={i} className="my-12 whitespace-nowrap font-mono text-xl text-foreground">
+              <p key={i} className="my-12 whitespace-nowrap font-mono text-2xl font-bold text-foreground">
                 {watermarkText}{"    "}{watermarkText}
               </p>
             ))}
