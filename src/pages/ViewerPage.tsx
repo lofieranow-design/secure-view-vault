@@ -380,7 +380,7 @@ export default function ViewerPage() {
           <Button variant="ghost" size="sm" onClick={backToGallery}>
             ← Back
           </Button>
-          <Shield className="h-4 w-4 text-primary" />
+          <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain" />
           <span className="font-display text-sm font-semibold text-foreground">
             {activeFile?.filename}
           </span>
