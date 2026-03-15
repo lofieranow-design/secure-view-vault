@@ -213,11 +213,9 @@ export default function ViewerPage() {
         <Card className="w-full max-w-md border-border shadow-lg">
           <CardHeader className="text-center space-y-4 pb-2">
             <SectionNav />
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-              <Shield className="h-7 w-7 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="DigitalPro" className="mx-auto h-20 w-20 rounded-xl object-contain" />
             <CardTitle className="font-display text-2xl font-bold text-foreground">
-              Digital Vault
+              DigitalPro
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               Enter your access code to view protected content
