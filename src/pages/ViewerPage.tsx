@@ -384,7 +384,9 @@ export default function ViewerPage() {
           <Button variant="ghost" size="sm" onClick={backToGallery}>
             ← Back
           </Button>
-          <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain" />
+          <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer">
+            <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain transition-opacity hover:opacity-80" />
+          </a>
           <span className="font-display text-sm font-semibold text-foreground">
             {activeFile?.filename}
           </span>

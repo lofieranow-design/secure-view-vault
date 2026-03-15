@@ -39,7 +39,9 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border pb-4">
         <div className="flex items-center gap-3 px-2">
-          <img src={logo} alt="DigitalPro" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
+          <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer">
+            <img src={logo} alt="DigitalPro" className="h-8 w-8 shrink-0 rounded-lg object-contain transition-transform hover:scale-105" />
+          </a>
           {!collapsed && (
             <span className="font-display text-base font-bold text-sidebar-primary">
               DigitalPro
