@@ -24,10 +24,10 @@ interface FileRecord {
 }
 
 const fileIcon = (type: string) => {
-  if (type.includes("pdf")) return <FileText className="h-6 w-6 text-red-400" />;
-  if (type.includes("image")) return <Image className="h-6 w-6 text-blue-400" />;
-  if (type.includes("video")) return <Video className="h-6 w-6 text-purple-400" />;
-  return <FileSpreadsheet className="h-6 w-6 text-primary" />;
+  if (type.includes("pdf")) return <FileText className="h-5 w-5 text-muted-foreground" />;
+  if (type.includes("image")) return <Image className="h-5 w-5 text-muted-foreground" />;
+  if (type.includes("video")) return <Video className="h-5 w-5 text-muted-foreground" />;
+  return <FileSpreadsheet className="h-5 w-5 text-muted-foreground" />;
 };
 
 const formatSize = (bytes: number | null) => {
@@ -74,11 +74,8 @@ export default function AdminFiles() {
         uploaded_by: user?.id,
       });
 
-      if (dbError) {
-        toast.error(`Failed to save ${file.name} record`);
-      } else {
-        toast.success(`Uploaded ${file.name}`);
-      }
+      if (dbError) toast.error(`Failed to save ${file.name} record`);
+      else toast.success(`Uploaded ${file.name}`);
     }
 
     setUploading(false);
@@ -95,21 +92,15 @@ export default function AdminFiles() {
       .from("digital-products")
       .upload(path, thumbFile, { upsert: true });
 
-    if (uploadError) {
-      toast.error("Failed to upload thumbnail");
-      return;
-    }
+    if (uploadError) { toast.error("Failed to upload thumbnail"); return; }
 
     const { error: dbError } = await supabase
       .from("files")
       .update({ thumbnail_path: path } as any)
       .eq("id", fileId);
 
-    if (dbError) {
-      toast.error("Failed to save thumbnail");
-    } else {
-      toast.success("Thumbnail uploaded");
-    }
+    if (dbError) toast.error("Failed to save thumbnail");
+    else toast.success("Thumbnail uploaded");
     fetchFiles();
     e.target.value = "";
   };
@@ -147,14 +138,11 @@ export default function AdminFiles() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl text-foreground">Files</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your digital product samples
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Files</h1>
+          <p className="text-sm text-muted-foreground">Manage your digital product samples</p>
         </div>
         <label>
           <Input
@@ -164,86 +152,75 @@ export default function AdminFiles() {
             accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.mp4,.webm,.mov"
             onChange={handleUpload}
           />
-          <Button asChild disabled={uploading} className="gradient-gold text-primary-foreground border-0 hover:opacity-90">
+          <Button asChild disabled={uploading} size="sm" className="gradient-gold text-primary-foreground border-0 hover:opacity-90">
             <span className="cursor-pointer">
-              <Upload className="mr-2 h-4 w-4" />
-              {uploading ? "Uploading..." : "Upload Files"}
+              <Upload className="mr-1.5 h-3.5 w-3.5" />
+              {uploading ? "Uploading…" : "Upload"}
             </span>
           </Button>
         </label>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative max-w-xs">
+        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search files..."
+          placeholder="Search files…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 rounded-xl bg-card"
+          className="h-8 pl-8 text-[13px]"
         />
       </div>
 
-      {/* File Grid */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-16">
-          <FolderOpen className="h-12 w-12 text-muted-foreground/30" />
-          <p className="mt-4 text-sm text-muted-foreground">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16">
+          <FolderOpen className="h-8 w-8 text-muted-foreground/30" />
+          <p className="mt-3 text-sm text-muted-foreground">
             {search ? "No files match your search" : "No files uploaded yet"}
           </p>
           {!search && (
-            <label className="mt-4">
+            <label className="mt-3">
               <Input type="file" className="hidden" multiple onChange={handleUpload} />
               <Button variant="outline" asChild size="sm">
-                <span className="cursor-pointer">Upload your first file</span>
+                <span className="cursor-pointer text-[13px]">Upload your first file</span>
               </Button>
             </label>
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((file) => (
             <div
               key={file.id}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
+              className="group relative overflow-hidden rounded-lg border border-border bg-card transition-colors hover:bg-accent/30"
             >
-              {/* Thumbnail / Icon area */}
-              <div className="flex h-40 items-center justify-center bg-muted/50">
+              <div className="flex h-32 items-center justify-center bg-muted/40">
                 {thumbnailUrls[file.id] ? (
-                  <img
-                    src={thumbnailUrls[file.id]}
-                    alt={file.filename}
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={thumbnailUrls[file.id]} alt={file.filename} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-col items-center gap-1.5">
                     {fileIcon(file.filetype)}
-                    <Badge variant="secondary" className="text-[10px]">
-                      {file.filetype.split("/").pop()?.toUpperCase()}
-                    </Badge>
+                    <span className="text-[10px] font-medium uppercase text-muted-foreground">
+                      {file.filetype.split("/").pop()}
+                    </span>
                   </div>
                 )}
               </div>
 
-              {/* File Info */}
-              <div className="p-4">
-                <p className="truncate text-sm font-medium text-foreground">{file.filename}</p>
-                <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{formatSize(file.filesize)}</span>
-                  <span>•</span>
-                  <span>{new Date(file.created_at).toLocaleDateString()}</span>
-                </div>
+              <div className="p-3">
+                <p className="truncate text-[13px] font-medium text-foreground">{file.filename}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {formatSize(file.filesize)} · {new Date(file.created_at).toLocaleDateString()}
+                </p>
               </div>
 
-              {/* Actions */}
-              <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute right-1.5 top-1.5 opacity-0 transition-opacity group-hover:opacity-100">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-lg bg-card/90 shadow-md glass">
-                      <MoreVertical className="h-4 w-4" />
+                    <Button variant="secondary" size="icon" className="h-7 w-7 rounded-md shadow-sm">
+                      <MoreVertical className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-xl">
+                  <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <label className="cursor-pointer">
                         <Input
@@ -253,7 +230,7 @@ export default function AdminFiles() {
                           onChange={(e) => handleThumbnailUpload(file.id, e)}
                         />
                         <div className="flex items-center gap-2">
-                          <ImagePlus className="h-4 w-4" />
+                          <ImagePlus className="h-3.5 w-3.5" />
                           {file.thumbnail_path ? "Replace Thumbnail" : "Add Thumbnail"}
                         </div>
                       </label>
@@ -262,7 +239,7 @@ export default function AdminFiles() {
                       className="text-destructive focus:text-destructive"
                       onClick={() => handleDelete(file)}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
