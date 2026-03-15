@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Trash2, FileText, Image, Video, FileSpreadsheet, ImagePlus, MoreVertical, Search } from "lucide-react";
+import { Upload, Trash2, FileText, Image, Video, FileSpreadsheet, ImagePlus, MoreVertical, Search, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
