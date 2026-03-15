@@ -31,9 +31,9 @@ export default function AdminLogin() {
     const { error } = await signIn(email, password);
     if (error) {
       setError("Invalid credentials");
-      setLoading(false);
     }
-    // Don't navigate here — the useEffect above handles it after auth state updates
+    setLoading(false);
+    // Navigation is handled by the useEffect above after auth state updates
   };
 
   return (
