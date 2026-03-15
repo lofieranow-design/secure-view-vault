@@ -288,8 +288,8 @@ export default function ViewerPage() {
       <div className="flex min-h-screen flex-col bg-background">
         <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border bg-card px-4 shadow-sm">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
-            <span className="font-display text-sm font-semibold text-foreground">Digital Vault</span>
+            <img src={logo} alt="DigitalPro" className="h-6 w-6 rounded object-contain" />
+            <span className="font-display text-sm font-semibold text-foreground">DigitalPro</span>
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="font-mono text-xs">
