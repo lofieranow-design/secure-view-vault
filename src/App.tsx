@@ -12,6 +12,8 @@ import AdminLayout from "./pages/AdminLayout";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminFiles from "./pages/AdminFiles";
 import AdminCodes from "./pages/AdminCodes";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminSettings from "./pages/AdminSettings";
 import ViewerPage from "./pages/ViewerPage";
 
 const queryClient = new QueryClient();
