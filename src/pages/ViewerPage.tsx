@@ -213,7 +213,9 @@ export default function ViewerPage() {
         <Card className="w-full max-w-md border-border shadow-lg">
           <CardHeader className="text-center space-y-4 pb-2">
             <SectionNav />
-            <img src={logo} alt="DigitalPro" className="mx-auto h-20 w-20 rounded-xl object-contain" />
+            <a href="https://www.etsy.com/shop/ProDigitalHubUS?ref=profile_header" target="_blank" rel="noopener noreferrer">
+              <img src={logo} alt="DigitalPro" className="mx-auto h-20 w-20 rounded-xl object-contain transition-transform hover:scale-105" />
+            </a>
             <CardTitle className="font-display text-2xl font-bold text-foreground">
               DigitalPro
             </CardTitle>
